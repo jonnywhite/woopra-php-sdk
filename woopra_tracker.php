@@ -46,7 +46,8 @@ class WoopraTracker {
 		"hide_campaign" => false,
 		"ip_address" => "",
 		"cookie_value" => "",
-		"app" => ""
+		"app" => "",
+		"woopra_url" => "http://www.woopra.com/track/"
 	);
 
 	/**
@@ -98,7 +99,12 @@ class WoopraTracker {
 	* @var boolean
 	*/
 	private $tracker_ready;
-	
+
+	/*
+	 * Woopra API endpoint
+	 */
+	private $woopra_url;
+
 	/**
 	 * Woopra Analytics
 	 * @param none
@@ -135,6 +141,8 @@ class WoopraTracker {
 		//We don't have any info on the user yet, so he is up to date by default.
 		$this->user_up_to_date = true;
 
+		// Set the default Woopra URL
+		$this->woopra_url = $this->current_config["woopra_url"];
 	}
 
 	/**
@@ -214,9 +222,6 @@ class WoopraTracker {
 	 * @return none
 	 */
 	private function woopra_http_request($is_tracking, $event = null) {
-
-		$base_url = "http://www.woopra.com/track/";
-
 		//Config params
 		$config_params = "?host=" . urlencode($this->current_config["domain"]);
 		$config_params .= "&cookie=" . urlencode($this->current_config["cookie_value"]);
@@ -233,7 +238,7 @@ class WoopraTracker {
 
 		//Just identifying
 		if ( ! $is_tracking ) {
-			$url = $base_url . "identify/" . $config_params . $user_params . "&ce_app=" . $this->current_config["app"];
+			$url = $this->woopra_url . "identify/" . $config_params . $user_params . "&ce_app=" . $this->current_config["app"];
 
 		//Tracking
 		} else {
@@ -248,7 +253,7 @@ class WoopraTracker {
 			} else {
 				$event_params .= "&ce_name=pv&ce_url=" . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
 			}
-			$url = $base_url . "ce/" . $config_params . $user_params . $event_params . "&ce_app=" . $this->current_config["app"];
+			$url = $this->woopra_url . "ce/" . $config_params . $user_params . $event_params . "&ce_app=" . $this->current_config["app"];
 		}
 
 		//Send the request
