@@ -47,7 +47,7 @@ class WoopraTracker {
 		"ip_address" => "",
 		"cookie_value" => "",
 		"app" => "",
-		"woopra_url" => "http://www.woopra.com/track/"
+		"woopra_url" => "https://www.woopra.com/track/"
 	);
 
 	/**
@@ -100,10 +100,10 @@ class WoopraTracker {
 	*/
 	private $tracker_ready;
 
-	/*
-	 * Woopra API endpoint
-	 */
-	private $woopra_url;
+	private $httpHost;
+	private $httpUserAgent;
+	private $remoteAddress;
+	private $requestUri;
 
 	/**
 	 * Woopra Analytics
@@ -112,6 +112,10 @@ class WoopraTracker {
 	 * @constructor
 	 */
 	function __construct($config_params = null) {
+		$this->httpHost = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '';
+		$this->httpUserAgent = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '';
+		$this->remoteAddr = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
+		$this->requestUri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
 
 		//Tracker is not ready yet
 		$this->tracker_ready = false;
@@ -123,8 +127,8 @@ class WoopraTracker {
 		$this->current_config["ip_address"] = $this->get_client_ip();
 		
 		//Set the domain name and the cookie_domain
-		$this->current_config["domain"] = $_SERVER["HTTP_HOST"];
-		$this->current_config["cookie_domain"] = $_SERVER["HTTP_HOST"];
+		$this->current_config["domain"] = $this->httpHost;
+		$this->current_config["cookie_domain"] = $this->httpHost;
 
 		//configure app ID
 		$this->current_config["app"] = WoopraTracker::$SDK_ID;
@@ -140,9 +144,6 @@ class WoopraTracker {
 
 		//We don't have any info on the user yet, so he is up to date by default.
 		$this->user_up_to_date = true;
-
-		// Set the default Woopra URL
-		$this->woopra_url = $this->current_config["woopra_url"];
 	}
 
 	/**
@@ -238,7 +239,7 @@ class WoopraTracker {
 
 		//Just identifying
 		if ( ! $is_tracking ) {
-			$url = $this->woopra_url . "identify/" . $config_params . $user_params . "&ce_app=" . $this->current_config["app"];
+			$url = $this->current_config['woopra_url'] . "identify/" . $config_params . $user_params . "&ce_app=" . $this->current_config["app"];
 
 		//Tracking
 		} else {
@@ -251,9 +252,9 @@ class WoopraTracker {
 					$event_params .= "&ce_" . urlencode($option) . "=" . urlencode($value);
 				}
 			} else {
-				$event_params .= "&ce_name=pv&ce_url=" . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+				$event_params .= "&ce_name=pv&ce_url=" . $this->httpHost . $this->requestUri;
 			}
-			$url = $this->woopra_url . "ce/" . $config_params . $user_params . $event_params . "&ce_app=" . $this->current_config["app"];
+			$url = $this->current_config['woopra_url'] . "ce/" . $config_params . $user_params . $event_params . "&ce_app=" . $this->current_config["app"];
 		}
 
 		//Send the request
@@ -263,7 +264,7 @@ class WoopraTracker {
 			$opts = array(
 				'http'=>array(
 					'method'=>"GET",
-					'header'=>"User-Agent: ".$_SERVER['HTTP_USER_AGENT']
+					'header'=>"User-Agent: ".$this->httpUserAgent
 			    )
 			);
 			$context = stream_context_create($opts);
@@ -341,6 +342,7 @@ class WoopraTracker {
 				trigger_error("Unexpected parameter in configuration array: ".$option.".");
 			}
 		}
+
 		return $this;
 	}
 
@@ -460,7 +462,7 @@ class WoopraTracker {
 			$ips = explode(",", $_SERVER["HTTP_X_FORWARDED_FOR"]);
 			return trim($ips[0]);
 		} else {
-			return $_SERVER["REMOTE_ADDR"];
+			return $this->remoteAddr;
 		}
 	}
 
@@ -475,11 +477,18 @@ class WoopraTracker {
 		curl_setopt($ch, CURLOPT_URL, $url);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
-		curl_setopt($ch, CURLOPT_USERAGENT, $_SERVER['HTTP_USER_AGENT']);
-		$data = curl_exec($ch);
+		curl_setopt($ch, CURLOPT_USERAGENT, $this->httpUserAgent);
+		$response = curl_exec($ch);
+		if (! $response) {
+			curl_close($ch);
+			throw new Exception('Could not connect', 0);
+		}
+		$responseInfo = curl_getinfo($ch);
+		if ( $responseInfo['http_code'] !== 200) {
+			curl_close($ch);
+			throw new Exception($response, $responseInfo['http_code']);
+		}
 		curl_close($ch);
-		return $data;
+		return true;
 	}
 }
-
-?>
