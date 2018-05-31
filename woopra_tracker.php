@@ -484,7 +484,7 @@ class WoopraTracker {
 			throw new Exception('Could not connect', 0);
 		}
 		$responseInfo = curl_getinfo($ch);
-		if ( $responseInfo['http_code'] !== 200) {
+		if ($responseInfo['http_code'] < 200 || $responseInfo['http_code'] >= 300) {
 			curl_close($ch);
 			throw new Exception($response, $responseInfo['http_code']);
 		}
