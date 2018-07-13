@@ -47,7 +47,9 @@ class WoopraTracker {
 		"ip_address" => "",
 		"cookie_value" => "",
 		"app" => "",
-		"woopra_url" => "https://www.woopra.com/track/"
+		"woopra_url" => "https://www.woopra.com/track/",
+		'connect_timeout' => 1,
+		'timeout' => 3,
 	);
 
 	/**
@@ -473,10 +475,10 @@ class WoopraTracker {
 	*/
 	private function get_data($url) {
 		$ch = curl_init();
-		$timeout = 5;
 		curl_setopt($ch, CURLOPT_URL, $url);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
+		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $this->current_config['connect_timeout']);
+		curl_setopt($ch, CURLOPT_TIMEOUT, $this->current_config['timeout']);
 		curl_setopt($ch, CURLOPT_USERAGENT, $this->httpUserAgent);
 		$response = curl_exec($ch);
 		if (! $response) {
