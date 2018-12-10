@@ -48,8 +48,8 @@ class WoopraTracker {
 		"cookie_value" => "",
 		"app" => "",
 		"woopra_url" => "https://www.woopra.com/track/",
-		'connect_timeout' => 1,
-		'timeout' => 3,
+		'connect_timeout' => 2,
+		'timeout' => 4,
 	);
 
 	/**
