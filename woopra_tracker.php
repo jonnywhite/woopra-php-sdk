@@ -31,7 +31,7 @@ class WoopraTracker {
 	* @var array
 	*/
 	private static $default_config = array(
-		"domain" => "", 
+		"domain" => "",
 		"cookie_name" => "wooTracker",
 		"cookie_domain" => "",
 		"cookie_path" => "/",
@@ -127,7 +127,7 @@ class WoopraTracker {
 
 		//Set the default IP
 		$this->current_config["ip_address"] = $this->get_client_ip();
-		
+
 		//Set the domain name and the cookie_domain
 		$this->current_config["domain"] = $this->httpHost;
 		$this->current_config["cookie_domain"] = $this->httpHost;
@@ -193,7 +193,7 @@ class WoopraTracker {
 <?php
 				} else {
 ?>
-		woopra.track(<?php echo json_encode($event[0]); ?>, <?php echo json_encode($event[1]); ?>); 
+		woopra.track(<?php echo json_encode($event[0]); ?>, <?php echo json_encode($event[1]); ?>);
 <?php
 				}
 			}
@@ -272,7 +272,7 @@ class WoopraTracker {
 			$context = stream_context_create($opts);
 			file_get_contents( $url, false, $context);
 		}
-		
+
 	}
 
 	/**
@@ -283,7 +283,7 @@ class WoopraTracker {
 	public function js_code() {
 
 ?>
-	
+
 	<!-- Woopra code starts here -->
 	<script>
 		(function(){
@@ -296,17 +296,17 @@ class WoopraTracker {
 
 		//Print Custom JavaScript Configuration Code
 		$this->print_javascript_configuration();
-		
+
 		//Print JavaScript Identification Code
 		$this->print_javascript_identification();
-		
+
 		//Print stored events
 		$this->print_javascript_events();
 
 ?>
 	</script>
 	<!-- Woopra code ends here -->
-	
+
 <?php
 		return $this;
 
@@ -468,7 +468,7 @@ class WoopraTracker {
 		}
 	}
 
-	/** 
+	/**
 	* Gets the data from a URL using CURL
 	* @param String
 	* @return String
@@ -483,7 +483,7 @@ class WoopraTracker {
 		$response = curl_exec($ch);
 		if (! $response) {
 			curl_close($ch);
-			throw new Exception('Could not connect', 0);
+			throw new Exception('Could not connect. URL:' . $url, 0);
 		}
 		$responseInfo = curl_getinfo($ch);
 		if ($responseInfo['http_code'] < 200 || $responseInfo['http_code'] >= 300) {
